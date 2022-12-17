@@ -3,7 +3,7 @@ using Microsoft.VisualBasic;
 using System.Net;
 using System.Text.RegularExpressions;
 
-Console.WriteLine("Day13:");
+Console.WriteLine("Day13:");    // pt1: 5808  pt2: 22713
 
 string[] input = FileUtil.ReadFileByBlock("inputSamp.txt");
 
