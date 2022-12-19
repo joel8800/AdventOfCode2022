@@ -29,33 +29,33 @@ int released = 0;
 int step = 0;
 Valve us = tunnels.Valves[0];
 
-while (step < 30)
-{
-    released += GetReleasedPressure(tunnels);
+//while (step < 30)
+//{
+//    released += GetReleasedPressure(tunnels);
     
-    // if we're here check if we can open valve
-    if (us.Rate > 0 && us.OnOff == false)
-    {
-        us.OnOff = true;
-        step++;
-        continue;
-    }
-    else
-    {
-        // look for best path 
-        List<int> score = new();
-        for (int i = 0; i < us.AdjNodes.Count; i++)
-        {
-            score.Add(GetPathCost(us.AdjNodes[i], 1));
-        }
-        for (int i = 0; i < us.AdjNodes.Count; i++)
-        {
-            Console.WriteLine($"score[{i}]: {score[i]}");
-        }
-    }
+//    // if we're here check if we can open valve
+//    if (us.Rate > 0 && us.OnOff == false)
+//    {
+//        us.OnOff = true;
+//        step++;
+//        continue;
+//    }
+//    else
+//    {
+//        // look for best path 
+//        List<int> score = new();
+//        for (int i = 0; i < us.AdjNodes.Count; i++)
+//        {
+//            score.Add(GetPathCost(us.AdjNodes[i], 1));
+//        }
+//        for (int i = 0; i < us.AdjNodes.Count; i++)
+//        {
+//            Console.WriteLine($"score[{i}]: {score[i]}");
+//        }
+//    }
 
-    step++;
-}
+//    step++;
+//}
 
 
 
