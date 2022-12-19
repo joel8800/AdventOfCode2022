@@ -44,7 +44,7 @@ namespace Day18
             return Tuple.Create(X, Y, Z).GetHashCode();
         }
 
-        //public int CompareTo(Cube other) => (X, Y, Z).CompareTo((other.X, other.Y, other.Z));
+        // public int CompareTo(Cube other) => (X, Y, Z).CompareTo((other.X, other.Y, other.Z));
 
         public int CompareTo(Cube? other)
         {

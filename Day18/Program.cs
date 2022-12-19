@@ -13,13 +13,6 @@ string[] input = FileUtil.ReadFileByLine("input.txt");  // pt1: 64, 4242  pt2: 5
 //     let cube = line.Split(",").Select(int.Parse).ToArray()
 //     select (x: cube[0], y: cube[1], z: cube[2])).ToHashSet();
 
-//var minX = data.Select(p => p.x).Min();
-//var maxX = data.Select(p => p.x).Max();
-//var minY = data.Select(p => p.y).Min();
-//var maxY = data.Select(p => p.y).Max();
-//var minZ = data.Select(p => p.z).Min();
-//var maxZ = data.Select(p => p.z).Max();
-
 HashSet<Cube> cubeList = new();
 
 foreach (string line in input)
