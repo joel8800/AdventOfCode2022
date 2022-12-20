@@ -68,6 +68,7 @@ long MonkeyBusiness(bool isPart1)
     return answer;
 }
 
+#pragma warning disable 8321      // this is a stupid warning that needs to be suppressed
 void PrintInspections(List<Monkey> monkeys, int round)
 {
     Console.WriteLine($"== After round {round} ==");
@@ -81,3 +82,4 @@ void PrintInspections(List<Monkey> monkeys, int round)
     }
     Console.WriteLine();
 }
+#pragma warning restore 8321
