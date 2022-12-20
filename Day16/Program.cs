@@ -15,7 +15,7 @@ foreach (string line in input)
     string[] rateInfo = valveInfo[4].Split("=");
     string[] adjacents = sides[1].Split("valve");
     
-    Valve v = new(valveInfo[1], rateInfo[1]);
+    ValveRoom v = new(valveInfo[1], rateInfo[1]);
     v.AddAdjacents(adjacents[1]);
 
     tunnels.Valves.Add(v);
@@ -27,7 +27,7 @@ tunnels.ConnectTunnels();
 int released = 0;
 
 int step = 0;
-Valve us = tunnels.Valves[0];
+ValveRoom us = tunnels.Valves[0];
 
 //while (step < 30)
 //{
@@ -72,7 +72,7 @@ Console.WriteLine($"Part1: {released}");
 
 //=============================================================================
 
-int GetPathCost(Valve adj, int level)
+int GetPathCost(ValveRoom adj, int level)
 {
     if (adj.Rate > 0 && adj.OnOff == false)
     {
@@ -95,7 +95,7 @@ int GetReleasedPressure(ValveSystem vs)
     StringBuilder sb = new();
     sb.Append("opened: ");
 
-    foreach (Valve v in vs.Valves)
+    foreach (ValveRoom v in vs.Valves)
     {
         if (v.OnOff == true)
             released += v.Rate;

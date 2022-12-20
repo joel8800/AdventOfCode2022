@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Day16
 {
-    public class Valve
+    public class ValveRoom
     {
         public string ID { get; set; }
         public bool OnOff { get; set; }
         public int Rate { get; set; }
-        public List<Valve> AdjNodes { get; set; }
+        public List<ValveRoom> AdjNodes { get; set; }
         public List<string> AdjIDs { get; set; }
 
-        public Valve(string name, string flowRate)
+        public ValveRoom(string name, string flowRate)
         {
             ID = name;
             OnOff = false;

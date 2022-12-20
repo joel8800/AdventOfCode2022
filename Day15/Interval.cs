@@ -34,23 +34,23 @@
             return string.Format($"[{Lo},{Hi}]");
         }
 
-        public int CompareTo(Interval other) => (Lo, Hi).CompareTo((other.Lo, other.Hi));
+        //public int CompareTo(Interval other) => (Lo, Hi).CompareTo((other.Lo, other.Hi));
 
-        //public int CompareTo(Interval? other)
-        //{
-        //    if (Lo < other.Lo)
-        //        return -1;
-        //    if (Lo > other.Lo)
-        //        return 1;
-        //    if (Lo == other.Lo)
-        //    {
-        //        if (Hi < other.Hi)
-        //            return -1;
-        //        if (Hi > other.Hi)
-        //            return 1;
-        //        return 0;
-        //    }
-        //    return 0;
-        //}
+        public int CompareTo(Interval? other)
+        {
+            if (Lo < other.Lo)
+                return -1;
+            if (Lo > other.Lo)
+                return 1;
+            if (Lo == other.Lo)
+            {
+                if (Hi < other.Hi)
+                    return -1;
+                if (Hi > other.Hi)
+                    return 1;
+                return 0;
+            }
+            return 0;
+        }
     }
 }

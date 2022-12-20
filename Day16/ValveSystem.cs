@@ -9,7 +9,7 @@ namespace Day16
 {
     public class ValveSystem
     {
-        public List<Valve> Valves { get; set; }
+        public List<ValveRoom> Valves { get; set; }
 
         private int released;
 
@@ -20,19 +20,19 @@ namespace Day16
             released = 0;
         }
 
-        public void Add(Valve v)
+        public void Add(ValveRoom v)
         {
             Valves.Add(v);
         }
 
         public void ConnectTunnels()
         {
-            foreach (Valve v in Valves)
+            foreach (ValveRoom v in Valves)
             {
                 foreach (string adjName in v.AdjIDs)
                 {
                     Console.WriteLine($"connecting {v.ID} to {adjName}");
-                    Valve target = Valves.First(x => x.ID == adjName);
+                    ValveRoom target = Valves.First(x => x.ID == adjName);
                     v.AdjNodes.Add(target);
                 }
             }
@@ -42,7 +42,7 @@ namespace Day16
         {
             int released = 0;
 
-            foreach (Valve v in Valves)
+            foreach (ValveRoom v in Valves)
             {
                 if (v.OnOff == true)
                     released += v.Rate;
@@ -54,7 +54,7 @@ namespace Day16
         public void ResetSystem()
         {
             released = 0;
-            foreach (Valve v in Valves)
+            foreach (ValveRoom v in Valves)
                 v.OnOff = false;
         }
 
