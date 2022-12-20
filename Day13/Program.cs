@@ -1,145 +1,88 @@
 ﻿using AoCUtils;
-using Microsoft.VisualBasic;
-using System.Net;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 
-Console.WriteLine("Day13:");    // pt1: 5808  pt2: 22713
+Console.WriteLine("Day13: Distress Signal");
 
-string[] input = FileUtil.ReadFileByBlock("inputSamp.txt");
+string[] inputPairs = FileUtil.ReadFileByBlock("input.txt");    // pt1: 5808  pt2: 22713
+string[] inputLines = FileUtil.ReadFileByLine("input.txt");
 
-Regex re = new(@"[\d+\w+]");
 List<List<int>> left = new();
 List<List<int>> right = new();
-char[] delim = { '[', ']' };
 
 int total = 0;
-for (int i = 0; i < input.Length; i++)
+for (int i = 0; i < inputPairs.Length; i++)
 {
-    string block = input[i];
+    string block = inputPairs[i];
     string[] pair = block.Split(Environment.NewLine);
 
-    left = MakeLists(pair[0]);
-    right = MakeLists(pair[1]);
+    JsonElement leftJSON = JsonDocument.Parse(pair[0]).RootElement;
+    JsonElement rightJSON = JsonDocument.Parse(pair[1]).RootElement;
 
-    int result = CompareLeftToRight(left, right);
-    total += (i + 1) * result * -1;
-
-    Console.WriteLine($"[{i + 1}] = {result}, total = {total}");
+    int result = comparePackets(leftJSON, rightJSON);
+    if (result < 0)
+        total += (i + 1);
 }
 
 Console.WriteLine($"Part1: {total}");
 
-
-List<List<int>> MakeLists(string input)
+List<JsonElement> packets = new();
+foreach (string line in inputLines)
 {
-    List<List<int>> myList = new();
+    if (line == "")
+        continue;
 
-    string[] splits = input.Split(delim);
+    JsonElement packet = JsonDocument.Parse(line).RootElement;
+    packets.Add(packet);
+}
 
-    foreach (string group in splits)
+//packets.Add(JsonDocument.Parse("[[2]]").RootElement);
+//packets.Add(JsonDocument.Parse("[[6]]").RootElement);
+JsonElement twoPacket = JsonDocument.Parse("[[2]]").RootElement;
+JsonElement sixPacket = JsonDocument.Parse("[[6]]").RootElement;
+
+int index2 = 1;
+int index6 = 2;
+foreach (var p in packets)
+{
+    int result2 = comparePackets(twoPacket, p);
+    //Console.WriteLine($"two vs p: {result2}");
+    if (result2 > 0)
+        index2++;
+
+    int result6 = comparePackets(sixPacket, p);
+    //Console.WriteLine($"six vs p: {result6}");
+    if (result6 > 0) 
+        index6++;
+}
+//Console.WriteLine($"index2:{index2}  index6:{index6}");
+Console.WriteLine($"Part2: {index2 * index6}");
+
+
+int comparePackets(JsonElement left, JsonElement right)
+{
+    if (left.ValueKind == JsonValueKind.Number && right.ValueKind == JsonValueKind.Number)
     {
-        if (group == ",")
-            continue;
-
-        List<int> tmp = new();
-
-        if (group.Length > 0)
+        return left.GetInt32() - right.GetInt32();
+    }
+    else if (left.ValueKind == JsonValueKind.Number)
+    {
+        return comparePackets(JsonDocument.Parse($"[{left.GetInt32()}]").RootElement, right);
+    }
+    else if (right.ValueKind == JsonValueKind.Number)
+    {
+        return comparePackets(left, JsonDocument.Parse($"[{right.GetInt32()}]").RootElement);
+    }
+    else
+    {
+        foreach (var (nextLeft, nextRight) in Enumerable.Zip(left.EnumerateArray(), right.EnumerateArray()))
         {
-            // add items to tmp
-            string[] items = group.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            tmp = items.Select(x => Convert.ToInt32(x)).ToList();
+            var current = comparePackets(nextLeft, nextRight);
+            if (current == 0)
+                continue;
+            else
+                return current;
         }
 
-        myList.Add(tmp);
+        return left.GetArrayLength() - right.GetArrayLength();
     }
-
-    return myList;
-}
-
-
-int CompareLeftToRight(List<List<int>> left, List<List<int>> right)
-{
-    int i = 0;
-    while (left.Count > 1 && right.Count > i)
-    {
-        int compare = CompareList(left[i], right[i]);
-
-        if (compare == -1)
-            return -1;
-
-        if (compare == 1)
-            return 1;
-        
-    }
-    if (left.Count == i && right.Count > i)
-        return -1;
-    else if (right.Count == i && left.Count > i)
-        return 1;
-    else
-        return 0;
-}
-
-
-int CompareInt(int left, int right)
-{
-    if (left < right)
-        return -1;
-    else if (left == right)
-        return 0;
-    else if (left > right)
-        return 1;
-    return 99;
-}
-
-int CompareList(List<int> left, List<int> right)
-{
-    if (left.Count == 0 && right.Count == 0)        // empty lists match
-        return -1;
-
-    int i = 0;
-    while (left.Count > i && right.Count > i)
-    {
-        int compare = CompareInt(left[i], right[i]);
-        if (compare == -1)
-            return -1;
-        if (compare == 1)
-            return 1;
-        i += 1;
-    }
-    if (left.Count == i && right.Count > i)
-        return -1;
-    else if (right.Count == i && left.Count > i)
-        return 1;
-    else
-        return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-int CompareListToInt(List<int> left, int right)
-{
-    List<int> rightList = new() { right };
-
-    return CompareList(left, rightList);
-}
-
-int CompareIntToList(int left, List<int> right)
-{
-    List<int> leftList = new() { left };
-
-    return CompareList(leftList, right);
-}
-
-string RemoveBrackets(string text)
-{
-    return text.Substring(1, text.Length - 2);
 }
