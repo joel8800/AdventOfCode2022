@@ -1,23 +1,20 @@
 ﻿using AoCUtils;
 using Day21;
+using System.Diagnostics;
+using System.Numerics;
 
 Console.WriteLine("Day21: ");
 
 string[] input = FileUtil.ReadFileByLine("input.txt");  // part1: 51928383302238  part2: 3305669217840
 
-List<Monkey> monkeys = ReadInput(input);
+Stopwatch sw = Stopwatch.StartNew();
 
-int iterations = 0;
-while(Resolve(monkeys) == false)
-{
-    iterations++;
-    if (iterations > 50)    // less than 50 iterations to resolve all monkeys
-        break;
-    //Console.WriteLine($"===== iteration {iterations} =====");
-}
+//List<Monkey> monkeys = IterationLoop(input, -1);
+List<Monkey> monkeys = QueueMethod(input, -1);
 
 Monkey rootPt1 = monkeys.Single(mx => mx.Name == "root");
-Console.WriteLine($"Part1: {rootPt1.Value}");
+Console.WriteLine($"[{sw.Elapsed}] Part1: {rootPt1.Value}");
+
 
 //-----------------------------------------------------------------------------
 // root: jhpn + jmsg  <-- from input
@@ -30,26 +27,12 @@ List<long> trials = new() { 1000000, 10000000, 100000000, 1000000000,
 Console.WriteLine($"left:jhpn              right:jmsg");
 foreach (long trial in trials)
 {
-    monkeys.Clear();
-    monkeys = ReadInput(input);
-
-    Monkey humn = monkeys.Single(mx => mx.Name == "humn");
-    humn.Value = trial;
-
-    long score = ResolveLoop(monkeys);
+    //monkeys = IterationLoop(input, trial);
+    monkeys = QueueMethod(input, trial);
     
-    //iterations = 0;
-    //while (Resolve(monkeys) == false)
-    //{
-    //    iterations++;
-    //    if (iterations > 50)
-    //        break;
-    //}
-
-    Monkey root = monkeys.Single(mx => mx.Name == "root");
-    Monkey left = monkeys.Single(mx => mx.Name == "jhpn");
-    Monkey right = monkeys.Single(mx => mx.Name == "jmsg");
-    Console.WriteLine($"{left.Value}         {right.Value}");
+    Monkey left = monkeys.Single(m => m.Name == "jhpn");
+    Monkey right = monkeys.Single(m => m.Name == "jmsg");
+    Console.WriteLine($"{left.Value,14}         {right.Value,14}");
 }
 
 // binary search
@@ -57,20 +40,22 @@ long numLo = 1000000000000;
 long numHi = 5000000000000;
 long testPoint = 0;
 
+sw = Stopwatch.StartNew();
 while (numLo < numHi)
 {
     testPoint = (numLo + numHi) / 2;
     //Console.WriteLine($"low:{numLo}  mid:{testPoint}  high:{numHi}");
     Console.WriteLine($"test: {testPoint}");
 
-    monkeys.Clear();
-    monkeys = ReadInput(input);
+    //monkeys = IterationLoop(input, testPoint);
+    monkeys = QueueMethod(input, testPoint);
 
-    Monkey humn = monkeys.Single(mx => mx.Name == "humn");
-    humn.Value = testPoint;
+    Monkey jhpn = monkeys.Single(m => m.Name == "jhpn");
+    Monkey jmsg = monkeys.Single(m => m.Name == "jmsg");
 
-    long result = ResolveLoop(monkeys);
-
+    long result = jmsg.Value - jhpn.Value;
+    //Console.WriteLine($"left:{jmsg.Value}  right:{jhpn.Value} diff:{result}");
+    
     if (result == 0)
         break;
 
@@ -81,20 +66,23 @@ while (numLo < numHi)
 }
 
 Console.WriteLine();
-Console.WriteLine($"Part2: {testPoint}");
+Console.WriteLine($"[{sw.Elapsed}] Part2: {testPoint}");
 Console.WriteLine();
 
 
 for (long i = -5; i <= 8; i++)
 {
-    monkeys.Clear();
-    monkeys = ReadInput(input);
+    //monkeys = IterationLoop(input, testPoint + i);
+    monkeys = QueueMethod(input, testPoint + i);
 
-    Monkey human = monkeys.Single(mx => mx.Name == "humn");
-    human.Value = testPoint + i;
+    Monkey jhpn = monkeys.Single(m => m.Name == "jhpn");
+    Monkey jmsg = monkeys.Single(m => m.Name == "jmsg");
+    Monkey root = monkeys.Single(m => m.Name == "root");
+    root.op = "-";
 
-    long postTest = ResolveLoop(monkeys);
-    Console.WriteLine($"testPoint:{testPoint + i}  result:{postTest}");
+    long result = EvaluateExpression(root, jhpn.Value, jmsg.Value);
+
+    Console.WriteLine($"testPoint:{testPoint + i}  result:{root.Value}");
 }
 // rounding error?  multiple values result in 0
 //testPoint: 3305669217838  result: -27
@@ -109,67 +97,125 @@ for (long i = -5; i <= 8; i++)
 //testPoint: 3305669217847  result: 23
 //=============================================================================
 
-long ResolveLoop(List<Monkey> monkeys)
+List<Monkey> QueueMethod(string[] input, long humnVal)
 {
-    iterations = 0;
-    while (Resolve(monkeys) == false)
+    List<Monkey> resolved = new();
+    Queue<Monkey> q = new();
+    Monkey tmpMonkey;
+
+    // add monkeys that have a value to resolved list, others go to q
+    for (int i = 0; i < input.Length; i++)
     {
-        iterations++;
-        if (iterations > 50)
-            break;
-    }
-    Monkey jhpn = monkeys.Single(mx => mx.Name == "jhpn");
-    Monkey jmsg = monkeys.Single(mx => mx.Name == "jmsg");
+        string[] monkeyInput = input[i].Split(": ");
 
-    long score = jmsg.Value - jhpn.Value;
-    //Console.WriteLine($"jhpn:{jhpn.Value}  jmsg:{jmsg.Value}  score:{score}  ");
-    return score;
-}
-
-
-
-bool Resolve(List<Monkey> monkeys)
-{
-    //Console.WriteLine("resolving...");
-
-    int resolveCount = 0;
-    foreach (Monkey m in monkeys)
-    {
-        //Console.WriteLine($"checking {m.Name} - {m.Value}");
-        if (m.Value > 0 || m.Name == "humn")
-            continue;
-
-        Monkey lm = monkeys.Single(mx => mx.Name == m.lName);
-        Monkey rm = monkeys.Single(mx => mx.Name == m.rName);
-
-        //Console.Write("checking left and right monkeys: ");
-        //Console.WriteLine($"{lm.Name}:{lm.Value}  {rm.Name}:{rm.Value}");
-        long result = 0;
-        if (lm.Value > 0 && rm.Value > 0)
+        if (long.TryParse(monkeyInput[1], out long value))
         {
-            //Console.WriteLine($"-- resolving {m.Name}: {lm.Name}({lm.Value}) {m.op} {rm.Name}({rm.Value})");
-            switch (m.op)
-            {
-                case "+": result = lm.Value + rm.Value; break;
-                case "-": result = lm.Value - rm.Value; break;
-                case "*": result = lm.Value * rm.Value; break;
-                case "/": result = lm.Value / rm.Value; break;
-                case "=": result = lm.Value == rm.Value ? 1 : 0; break;
-                default: Console.WriteLine("*** invalid operator"); break;
-            }
+            tmpMonkey = new(i, monkeyInput[0], value);
 
-            m.Value = result;
-            resolveCount++;
+            // for part2
+            if (tmpMonkey.Name == "humn" && humnVal > 0)
+                tmpMonkey.Value = humnVal;
+
+            resolved.Add(tmpMonkey);
+        }
+        else
+        {
+            tmpMonkey = new(i, monkeyInput[0], monkeyInput[1]);
+            q.Enqueue(tmpMonkey);
         }
     }
 
-    //Console.WriteLine($"----- resolved {resolveCount} monkeys");
-    if (resolveCount > 0)
-        return false;   // not done
-    else
-        return true;    // done
+    // reprocess unresolved monkeys until they're all resolved
+    while (q.Count > 0)
+    {
+        tmpMonkey = q.Dequeue();
+
+        if (resolved.Any(m => m.Name == tmpMonkey.lName) && resolved.Any(m => m.Name == tmpMonkey.rName))
+        {
+            // both left and right are resolved
+            long lValue = resolved.Single(m => m.Name == tmpMonkey.lName).Value;
+            long rValue = resolved.Single(m => m.Name == tmpMonkey.rName).Value;
+
+            // resolve and add to resolved list
+            EvaluateExpression(tmpMonkey, lValue, rValue);
+            resolved.Add(tmpMonkey);
+        }
+        else
+        {
+            // put back in q queue
+            q.Enqueue(tmpMonkey);
+        }
+    }
+
+    return resolved;
 }
 
+List<Monkey> IterationLoop(string[] input, long humnVal)
+{
+    List<Monkey> resolved = ReadInput(input);
+
+    // for part2
+    if (humnVal > 0)
+    {
+        Monkey humn = resolved.Single(m => m.Name == "humn");
+        humn.Value = humnVal;
+    }
+
+    bool moreIterationsNeeded = true;
+    
+    while (moreIterationsNeeded)
+    {
+        int resolveCount = 0;
+
+        foreach (Monkey m in resolved)
+        {
+            // skip if monkey as value or named "humn"
+            if (m.Value > 0 || m.Name == "humn")
+                continue;
+
+            Monkey lm = resolved.Single(mx => mx.Name == m.lName);
+            Monkey rm = resolved.Single(mx => mx.Name == m.rName);
+
+            //Console.Write("checking left and right monkeys: ");
+            //Console.WriteLine($"{lm.Name}:{lm.Value}  {rm.Name}:{rm.Value}");
+            if (lm.Value > 0 && rm.Value > 0)
+            {
+                EvaluateExpression(m, lm.Value, rm.Value);
+                resolveCount++;
+            }
+        }
+
+        if (resolveCount == 0)
+            moreIterationsNeeded = false;
+    }
+
+    return resolved;
+
+
+    
+}
+
+long EvaluateExpression(Monkey m, long lValue, long rValue)
+{
+    long result = 0;
+
+    if (lValue > 0 && rValue > 0)
+    {
+        //Console.WriteLine($"-- resolving {m.Name}: {lm.Name}({lm.Value}) {m.op} {rm.Name}({rm.Value})");
+        switch (m.op)
+        {
+            case "+": result = lValue + rValue; break;
+            case "-": result = lValue - rValue; break;
+            case "*": result = lValue * rValue; break;
+            case "/": result = lValue / rValue; break;
+            case "=": result = lValue == rValue ? 1 : 0; break;
+            default: Console.WriteLine("*** invalid operator"); break;
+        }
+        m.Value = result;
+    }
+
+    return result;
+}
 
 List<Monkey> ReadInput(string[] input)
 {
