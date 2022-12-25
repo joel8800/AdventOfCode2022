@@ -1,73 +1,95 @@
-﻿using AoCUtils;
-using Day17;
-using System.Globalization;
-using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
+﻿using Day17;
 
 Console.WriteLine("Day17: Pyroclastic Flow");
 
 string input = File.ReadAllText("input.txt");
-int inputPtr = 0;
 
-// make column and init bottom to height = -1
-long highPoint = -1;
-HashSet<ValueTuple<int, long>> column = new();
-for (int i = 0; i < 7; i++)
+long answerPt1 = DropRocks(input, 2022);
+long answerPt2 = DropRocks(input, 1000000000000L);
+
+Console.WriteLine($"Part1: {answerPt1}");
+Console.WriteLine($"Part2: {answerPt2}");
+
+
+//=============================================================================
+
+long DropRocks(string input, long maxRocks)
 {
-    ValueTuple<int, long> init = new(i, -1);
-    column.Add(init);
-}
+    int inputPtr = 0;
+    long highPoint = 0;
+    long rockCount = 0;
+    long patternAdded = 0;
 
-long rockCount = 0;
-long L = 2022;    // 1000000000000;
+    HashSet<(int x, long y)> column = new() { (0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0) };
+    Dictionary<State, (long rockIndex, long top)> states = new();
 
-while (rockCount < L)
-{
-    int rockType = (int) rockCount % 5;
-    Rock r = new(rockType, 0, highPoint + 4);   // gap of 3 between rock and highest point
-
-    bool placed = false;
-    while (placed == false)
+    while (rockCount < maxRocks)
     {
-        // pushed left or right
-        if (input[inputPtr] == '<')
-            r.MoveLeft(column);
-        else
-            r.MoveRight(column);
+        long rockType = rockCount % 5;
+        Rock r = new(rockType, highPoint + 4);   // gap of 3 between rock and highest point
 
-        // then move down
-        placed = r.MoveDown(column);
-        if (placed)
+        while(true)
         {
-            highPoint = column.Max(y => y.Item2);
-            //PrintColumn(column);
-        }
- 
-        inputPtr = (inputPtr + 1) % input.Length;
-    }
+            // pushed left or right
+            if (input[inputPtr] == '<')
+                r.MoveLeft(column);
+            else
+                r.MoveRight(column);
 
-    rockCount += 1;
+            inputPtr = (inputPtr + 1) % input.Length;
+
+            // then move down
+            if (r.MoveDown(column))
+            {
+                highPoint = column.Select(c => c.y).Max();
+                //PrintColumn(column);
+
+                if (highPoint >= 15)
+                {
+                    var newState = GetState(inputPtr, column, 15);
+
+                    if (states.TryGetValue(newState, out var result))
+                    {
+                        var distanceY = highPoint - result.top;
+                        var numRocks = rockCount - result.rockIndex;
+                        var multiple = (maxRocks - rockCount) / numRocks;
+                        patternAdded += distanceY * multiple;
+                        rockCount += numRocks * multiple;
+                        //Console.Write($"found in cache: top:{highPoint} rockIndex:{rockCount} distY:{distanceY} ");
+                        //Console.WriteLine($"numRocks:{numRocks} multiple:{multiple} patternAdded:{patternAdded}");
+                    }
+
+                    states[newState] = (rockCount, highPoint);
+                }
+                rockCount += 1;
+                break;
+            }
+        }
+    }
+    return highPoint + patternAdded;
 }
 
-Console.WriteLine($"Part1: {highPoint + 1}");   // add 1 as column is 0 based
+//=============================================================================
 
-
-
-
-
-
-void PrintColumn(HashSet<ValueTuple<long, long>> column)
+State GetState(int inputPtr, HashSet<(int x, long y)> column, long maxHeight)
 {
-    long maxY = column.Max(y => y.Item2);
+    var maxY = column.Select(c => c.y).Max();
+    HashSet<(int, long)> formation = column.Where(c => maxY - c.y < maxHeight).Select(c => (c.x, maxY - c.y)).ToHashSet();
+    return new State(inputPtr, formation);
+}
+
+
+void PrintColumn(HashSet<(int x, long y)> column)
+{
+    long maxY = column.Max(c => c.y);
 
     for (long y = maxY; y >= 0; y--)
     {
         string row = string.Empty;
 
-        for (long x = 0; x < 7; x++)
+        for (int x = 0; x < 7; x++)
         {
-            if (column.Contains(new ValueTuple<long, long>(x, y)))
+            if (column.Contains(new(x, y)))
                 row += "#";
             else
                 row += ".";
@@ -75,95 +97,3 @@ void PrintColumn(HashSet<ValueTuple<long, long>> column)
         Console.WriteLine($"|{row}| {y}");
     }
 }
-
-
-
-//while (numRocks <= 5)
-//{
-//    Rock newRock = new(rockCount);
-//    //newRock.Print();
-
-//    while (rockBottom > highPoint + 1)
-//    {
-//        // left or right movement first
-//        if (input[inputPtr] == '<')
-//            newRock.ShiftLeft();
-//        else
-//            newRock.ShiftRight();
-
-//        //newRock.Print();
-//        // update inputPtr
-//        inputPtr = (inputPtr + 1) % input.Length;
-
-//        if (ReachedBottom(newRock, highPoint))
-//        {
-//            Console.WriteLine("placing rock");
-//            PlaceRock(newRock, highPoint);
-//            highPoint += newRock.Height;
-//        }
-//        else
-//        {   // further to drop
-//            Console.WriteLine("moving rock down 1");
-//            rockBottom -= 1;
-//            if (rockBottom == 0)
-//                PlaceRock(newRock, highPoint);
-//        }
-//    }
-
-//    Console.WriteLine($"column height: {column.Count}");
-//    PrintColumn();
-
-//    // setup for next rock
-//    numRocks++;
-//    rockCount = (rockCount + 1) % 5;
-//    rockBottom = highPoint + 3;
-//}
-
-
-
-//bool ReachedBottom(Rock rock, int height)
-//{
-//    //if (height == 0)
-//    //    return true;
-    
-//    if ((rock.bits[0] ^ column[height]) == (rock.bits[0] | column[height]))
-//    {
-//        if (rock.Type == 1) // check second row of + rock
-//        {
-//            if ((rock.bits[1] ^ column[height]) == (rock.bits[1] | column[height]))
-//                return false;
-//        }
-//        return false;
-//    }
-//    else
-//        return true;
-//}
-
-
-//void PlaceRock(Rock rock, int height)
-//{
-//    for (int i = 0; i < rock.Height; i++)
-//    {
-//        column.Add(rock.bits[i]);
-//    }
-//}
-
-//void PrintColumn()
-//{
-//    for (int i = column.Count - 1; i >= 0; i--)
-//    {
-//        Console.Write('|');
-//        for (int j = 6; j >= 0; j--)
-//        {
-//            int b = (column[i] >> j) & 0x01;
-//            char bit = (b == 1) ? '#' : '.';
-//            Console.Write(bit);
-//        }
-//        Console.WriteLine('|');
-//    }
-//    Console.WriteLine("+-------+");
-//}
-
-
-
-
