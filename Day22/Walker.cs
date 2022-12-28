@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,6 +17,15 @@ namespace Day22
         public Walker(int r, int c, int d)
         {
             Row = r; Col = c; Dir = d;
+        }
+
+        public string OrdDir()
+        {
+            if (Dir == 0) return "E";
+            if (Dir == 1) return "S";
+            if (Dir == 2) return "W";
+            if (Dir == 3) return "N";
+            return $"invalid direction: {Dir}";
         }
     }
 }

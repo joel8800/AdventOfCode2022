@@ -6,7 +6,7 @@ using System.Xml;
 
 Console.WriteLine("Day22: Monkey Map");
 
-string[] input = FileUtil.ReadFileByBlock("input.txt");
+string[] input = FileUtil.ReadFileByBlock("input.txt");     // part1: 50412  part2: 130068
 string[] mapRows = input[0].Split(Environment.NewLine);
 int numRows = mapRows.Length;
 int numCols = mapRows.Max(s => s.Length);
@@ -26,7 +26,7 @@ for (int i = 0; i < numRows; i++)
 
 PrintMap();
 
-Regex re = new Regex(@"\d+|[RL]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+Regex re = new(@"\d+|[RL]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 MatchCollection matches = re.Matches(input[1]);
 List<string> commands = matches.Select(x => x.Value).ToList();
@@ -38,7 +38,7 @@ Walker w = new(0, 0, 0);
 while (map[1, w.Col] == ' ')
     w.Col++;
 
-Console.WriteLine($"at [{w.Row},{w.Col}] {map[w.Row, w.Col]} facing {w.Dir}");
+Console.WriteLine($"at [{w.Row},{w.Col}] {map[w.Row, w.Col]} facing {w.OrdDir()}");
 
 int deltaR = 0;
 int deltaC = 1;
@@ -46,26 +46,42 @@ foreach (string command in commands)
 {
     if (int.TryParse(command, out int steps))
     {
+        Console.WriteLine($"-- move {steps}");
         //Move(w, steps);
         for (int i = 0; i < steps; i++)
         {
             int nextR = w.Row;
             int nextC = w.Col;
+
             while(true)
             {
                 nextR = (nextR + deltaR) % numRows;
                 nextC = (nextC + deltaC) % numCols;
+
+                if (nextR >= numRows)
+                    nextR = 0;
+                if (nextR < 0)
+                    nextR = numRows - 1;
+
+                if (nextC >= numCols)
+                    nextC = 0;
+                if (nextC < 0)
+                    nextC = numCols - 1;
+                
                 if (map[nextR, nextC] != ' ')           // nextR became -1 here?
                     break;
             }
             if (map[nextR, nextC] == '#')
                 break;
+
             w.Row = nextR;
             w.Col = nextC;
+            Console.WriteLine($"at [{w.Row},{w.Col}] {map[w.Row, w.Col]} facing {w.OrdDir()}");
         }
     }
     else
     {
+        Console.WriteLine($"-- turn {command}");
         //Turn(w, command);
         if (command == "R")
         {
@@ -82,9 +98,9 @@ foreach (string command in commands)
             deltaC = tmp;
         }
     }
+    Console.WriteLine($"at [{w.Row},{w.Col}] {map[w.Row, w.Col]} facing {w.OrdDir()}");
 }
 
-Console.WriteLine($"at [{w.Row},{w.Col}] {map[w.Row, w.Col]} facing {w.Dir}");
 
 int answerPt1 = 1000 * (w.Row + 1) + 4 * (w.Col + 1) + w.Dir;
 Console.WriteLine($"Part1: {answerPt1}");
