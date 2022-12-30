@@ -10,9 +10,13 @@
   <ItemGroup>
     <None Remove="input.txt" />
     <None Remove="inputSamp.txt" />
+    <None Remove="inputSmall.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="inputSmall.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
