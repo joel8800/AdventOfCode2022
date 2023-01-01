@@ -82,4 +82,26 @@
         }
 
     }
+
+    public static class MathUtil
+    {
+        // GCD - greatest common factor
+        public static int GCF(int a, int b)
+        {
+            while (b != 0)
+            {
+                int temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        // LCM - least common multiple
+        public static int LCM(int a, int b)
+        {
+            return (a / GCF(a, b)) * b;
+        }
+    }
+
 }
