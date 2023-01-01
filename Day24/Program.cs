@@ -2,9 +2,9 @@
 
 Console.WriteLine("Day24: Blizzard Basin");
 
-bool verbose = true;
+bool verbose = false;
 
-string[] input = FileUtil.ReadFileByLine("inputSamp.txt");  // part1: 292  part2: 816
+string[] input = FileUtil.ReadFileByLine("input.txt");  // part1: 292  part2: 816
 int numRows = input.Length;
 int numCols = input[0].Length;
 
@@ -73,19 +73,20 @@ var start = (0, 1);
 var end = (numRows - 1, numCols - 2);
 LogPrintLn($"start({start}), end({end})");
 
-HashSet <((int r, int c), int t)> visited = new();
-PriorityQueue<((int r, int c) rc, int t), int> q= new();
+HashSet <((int r, int c), int t, bool en, bool st)> visited = new();
+PriorityQueue<((int r, int c) rc, int t, bool en, bool st), int> q= new();
 
-q.Enqueue((start, 0), 0);
+q.Enqueue((start, 0, false, false), 0);
 
 int answerPt1 = 0;
+int answerPt2 = 0;
 
 while (q.Count > 0)
 {
     LogPrintLn($"q count: {q.Count}");
 
     var curr = q.Dequeue();
-    LogPrint($"Dequeued ({curr.t}, ({curr.Item1.r}, {curr.Item1.c}) - ");
+    LogPrint($"Dequeued ({curr.t}, ({curr.rc.r}, {curr.rc.c}) - ");
     
     if (visited.Contains(curr))
     {
@@ -99,14 +100,38 @@ while (q.Count > 0)
     int time = curr.t;
     int currRow = curr.rc.r;
     int currCol = curr.rc.c;
+    bool hitEnd = curr.en;
+    bool hitStart = curr.st;
 
     // did we reach the end?
     if (curr.rc == end)
     {
-        LogPrintLn("reached end");
-        answerPt1 = time;
-        break;
+        if (hitEnd == true && hitStart == true)
+        {
+            //LogPrintLn("reached end second time");
+            answerPt2 = time;
+            break;
+        }
+
+        if (hitEnd == false)
+        {
+            //LogPrintLn("reached end first time");
+            hitEnd = true;
+            if (answerPt1 == 0)
+                answerPt1 = time;
+        }
     }
+
+    // are we back at start?
+    if (curr.rc == start)
+    {
+        if (hitEnd == true)
+        {
+            //LogPrintLn("reached start second time");
+            hitStart = true;
+        }
+    }
+
     // check neighbors
     for (int i = 0; i < 5; i++)
     {
@@ -132,12 +157,13 @@ while (q.Count > 0)
         }
 
         // queue next position if we get here
-        q.Enqueue(((nextRow, nextCol), time + 1), time + 1);
+        q.Enqueue(((nextRow, nextCol), time + 1, hitEnd, hitStart), time + 1);
         LogPrintLn($"-- adding ({time + 1}, ({nextRow},{nextCol})) to queue)");
     }
 }
 
 Console.WriteLine($"Part1: {answerPt1}");
+Console.WriteLine($"Part2: {answerPt2}");
 
 
 //=============================================================================
