@@ -2,42 +2,31 @@
 using Day19;
 using System.Text.RegularExpressions;
 
+// Solution converted from hyper-neutrino's python code. Huge learning experience for me.
+
 Console.WriteLine("Day19: Not Enough Minerals");
 
-string[] input = FileUtil.ReadFileByLine("inputSamp.txt");
+string[] input = FileUtil.ReadFileByLine("inputSamp.txt");  // Part1: 817   Part2: 4216
 
 List<Blueprint> bots = new();
 
 foreach (string line in input)
 {
-    MatchCollection mc = Regex.Matches(line, @"\d+");
-    int id = Convert.ToInt32(mc[0].Value);
-    int oreCost = Convert.ToInt32(mc[1].Value);
-    int clayCost = Convert.ToInt32(mc[2].Value);
-    int obsCostOre = Convert.ToInt32(mc[3].Value);
-    int obsCostCly = Convert.ToInt32(mc[4].Value);
-    int geoCostOre = Convert.ToInt32(mc[5].Value);
-    int geoCostObs = Convert.ToInt32(mc[6].Value);
-
-
-    Blueprint bp = new(id, oreCost, clayCost, obsCostOre, obsCostCly, geoCostOre, geoCostObs);
+    Blueprint bp = new(line);
     bots.Add(bp);
+    Console.WriteLine(bp);
 }
 
-for (int i = 0; i < 24; i++)
-{
-    foreach (var bot in bots)
-    {
-        bot.NextMinute();
-        Console.WriteLine($"{i + 1}: {bot}");
-    }
-    Console.WriteLine();
-}
+
+int answerPt1 = 0;
 
 foreach (var bot in bots)
 {
-    Console.WriteLine($"{bot.ID}: quality:{bot.GetQualityLevel()}");
+    int qLevel = bot.GetQualityLevel();
+    
+    Console.WriteLine($"{bot.ID}: quality:{qLevel}");
+    answerPt1 += qLevel;
 }
 
-Console.WriteLine($"Part1: ");
+Console.WriteLine($"Part1: {answerPt1}");
 
