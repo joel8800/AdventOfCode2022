@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 
-//Blueprint 1: Each ore robot bpNums 4 ore. Each clay robot bpNums 2 ore. Each obsidian robot bpNums 3 ore and 14 clay. Each geode robot bpNums 2 ore and 7 obsidian.
-//Blueprint 2: Each ore robot bpNums 2 ore. Each clay robot bpNums 3 ore. Each obsidian robot bpNums 3 ore and 8 clay. Each geode robot bpNums 3 ore and 12 obsidian.
 namespace Day19
 {
     public class Blueprint
@@ -15,7 +12,7 @@ namespace Day19
         private int[] botCount;
         private int[] material;
         private int[] maxSpend;
-        private Dictionary<(int, int[], int[]), int> cache;
+        private Dictionary<(int, int, int, int, int, int, int, int, int), int> cache;
 
 
         public Blueprint(string line)
@@ -37,12 +34,20 @@ namespace Day19
                 new() { (bpNums[5], 0), (bpNums[6], 2) }     // geode bot = x ore + y obsidian
             };
 
-            maxSpend = new int[] { 0, 0, 0 };       // ore, clay, obsidian to spend per turn
-            botCount = new int[] { 1, 0, 0, 0 };    // ore, clay, obsidian, geode bots that we have
-            material = new int[] { 0, 0, 0, 0 };    // ore, clay, obsidian, geode we've collected
+            maxSpend = new int[3];       
+            maxSpend[0] = bp.Max(x => x[0].Item1);  // max ore spend per turn
+            maxSpend[1] = bpNums[4];                // max clay spend per turn
+            maxSpend[2] = bpNums[6];                // max obsidian spend per turn
+
+            botCount = new int[4];
+            botCount[0] = 1;                        // start with 1 ore bot
+
+            material = new int[4];                  // ore, clay, obsidian, geode we've collected
+
             cache = new();
         }
 
+        // utility function to print blueprint
         public override string ToString()
         {
             StringBuilder sb = new();
@@ -58,89 +63,162 @@ namespace Day19
             return sb.ToString();
         }
 
-        public int GetQualityLevel()
+        /// <summary>
+        /// Part 1: multiply blueprint ID and maximum geodes
+        /// </summary>
+        /// <param name="minutes"></param>
+        /// <returns></returns>
+        public int GetQualityLevel(int minutes)
         {
-            // call dfs function
-            int quality = DFS(bp, maxSpend, cache, 24, botCount, material);
+            int quality = ID * DFS(bp, maxSpend, cache, minutes, botCount, material);
+            
             Console.WriteLine($"quality:{quality}");
-            return ID * quality;
+            return quality;
         }
 
-        private int DFS(List<List<(int, int)>> bp, int[] maxSpend, 
-                    Dictionary<(int, int[], int[]), int> cache, 
-                    int time, int[] bots, int[] amounts)
+        /// <summary>
+        /// Part 2: return maximum geodes
+        /// </summary>
+        /// <param name="minutes"></param>
+        /// <returns></returns>
+        public int GetMaximumGeodes(int minutes)
         {
-            Console.WriteLine("--- entering DFS ---");
-            Console.WriteLine($"time:{time}");
+            int maxGeodes = DFS(bp, maxSpend, cache, minutes, botCount, material);
+
+            Console.WriteLine($"maxGeodes:{maxGeodes}");
+            return maxGeodes;
+        }
+
+        /// <summary>
+        /// Create cache key from time remaining, bot array, and material array
+        /// </summary>
+        /// <param name="time"></param>
+        /// <param name="bots"></param>
+        /// <param name="amt"></param>
+        /// <returns></returns>
+        private (int, int, int, int, int, int, int, int, int) CacheKey(int time, int[] bots, int[] amt)
+        {
+            return (time, bots[0], bots[1], bots[2], bots[3], amt[0], amt[1], amt[2], amt[3]);
+        }
+
+        /// <summary>
+        /// Utility to print arrays
+        /// </summary>
+        /// <param name="arr"></param>
+        /// <returns></returns>
+        private string Arr2Str(int[] arr)
+        {
+            string output = "[";
+
+            for (int i = 0; i < arr.Length; i++)
+                output += (i != 0) ? $", {arr[i]}" : $"{arr[i]}";
+
+            output += "]";
+            
+            return output;
+        }
+
+        /// <summary>
+        /// Depth first search
+        /// </summary>
+        /// <param name="bp"></param>
+        /// <param name="maxSpend"></param>
+        /// <param name="cache"></param>
+        /// <param name="time"></param>
+        /// <param name="bots"></param>
+        /// <param name="amt"></param>
+        /// <returns></returns>
+        private int DFS(List<List<(int, int)>> bp, int[] maxSpend, 
+                    Dictionary<(int, int, int, int, int, int, int, int, int), int> cache, 
+                    int time, int[] bots, int[] amt)
+        {
+            //Console.WriteLine("--- entering DFS ---");
             // out of time
             if (time == 0)
-            {
-                Console.WriteLine($"time:{time} amt[3]:{amounts[3]}");
-                return amounts[3];
-            }
+                return amt[3];
 
-            // don't recalculate if done before
-            var key = (time, bots, amounts);
-            Console.WriteLine(key);
+            // don't recalculate if we've done this scenario before
+            // lookup in cache and return its value
+            //var key = (time, bots, amt);
+            var key = CacheKey(time, bots, amt);
             if (cache.ContainsKey(key))
-            {
-                Console.WriteLine($"{key} in cache");
                 return cache[key];
-            }
 
-            int maxVal = amounts[3] + bots[3] * time;
-            Console.WriteLine($"maxval:{maxVal} = amd[3]:{amounts[3]} + bots[3]:{bots[3]} * time:{time}");
+            // if we do nothing, this is the number of geodes at the end
+            int maxVal = amt[3] + (bots[3] * time);
 
-            Console.WriteLine("----------");
-            for (int i = 0; i < bp.Count; i++)
+            // how many geodes can we get if we build each type of bot
+            for (int botType = 0; botType < bp.Count; botType++)
             {
-                if (i != 3 && bots[i] >= maxSpend[i])
+                // skip this bot type if we already have enough of these bots
+                if (botType != 3 && bots[botType] >= maxSpend[botType])
                     continue;
 
                 int wait = 0;
-                bool brk = false;
 
-                // for each recipe
-                foreach (var recipe in bp[i])
+                // for each bot recipe
+                for (int i = 0; i < bp[botType].Count; i++)
                 {
-                    if (bots[recipe.Item2] == 0)
+                    var resource = bp[botType][i];
+
+                    int resourceAmt = resource.Item1;
+                    int resourceType = resource.Item2;
+
+                    //Console.WriteLine($"ramt:{resourceAmt} rtype:{resourceType}");
+                    if (bots[resourceType] == 0)
                     {
-                        brk = true;
+                        // in case we don't have any bots of this type
+                        //Console.WriteLine($"no bots of rtype:{resourceType}, breaking");
                         break;
                     }
-                    wait = Math.Max(wait, -(-(recipe.Item1 - amounts[recipe.Item2]) / bots[recipe.Item2]));
-                }
 
-                if (brk)
-                {
-                    int remTime = time - wait - 1;
-                    if (remTime <= 0)
-                        continue;
+                    //wait = Math.Max(wait, -(-(resourceAmt - amt[resourceType]) / bots[resourceType]));
+                    wait = Math.Max(wait, (int) Math.Ceiling(((decimal) resourceAmt - amt[resourceType]) / bots[resourceType]));
+                    //wait = ((resourceAmt - amt[resourceType]) + bots[resourceType] - 1) / bots[resourceType];
 
-                    int[] bots_ = bots;
-                    //[x + y * (wait + 1) for x, y in zip(amt, bots)]
-                    int[] amt_ = new int[4];
-                    for (int j = 0; j < 4; j++)
+                    // only do this part if it's the last iteration of the outer for loop
+                    if (i == bp[botType].Count - 1)
                     {
-                        int x = amounts[j];
-                        int y = bots[j];
-                        amt_[j] = (x + y * (wait + 1));
-                    }
-                    
-                    foreach (var recipe in bp[i])
+                        int remTime = time - wait - 1;
+                        
+                        if (remTime <= 0)
+                            continue;
+
+                        //Console.WriteLine($"bots:{Arr2Str(bots)}");
+                        //Console.WriteLine($"amt:{Arr2Str(amt)}");
+
+                        // create local copies of bots and amount arrays to pass to recursive call
+                        int[] bots_ = new int[4];
+                        int[] amt_ = new int[4];
+                        for (int j = 0; j < 4; j++)
+                        {
+                            int x = amt[j];
+                            int y = bots[j];
+                            bots_[j] = y;
+                            amt_[j] = (x + y * (wait + 1));
+                        }
+
+                        //Console.WriteLine($"bots_:{Arr2Str(bots_)}");
+                        //Console.WriteLine($"amt_:{Arr2Str(amt_)} adjusted for wait");
+
+                        // build new bot, deduct resources and increment bot count
+                        foreach (var recipe in bp[botType])
+                        {
                             amt_[recipe.Item2] -= recipe.Item1;
-                    
-                    bots_[i] += 1;
+                        }
+                        bots_[botType] += 1;
 
-                    for (int j = 0; j < 3; j++)
-                        amt_[j] = Math.Min(amt_[j], maxSpend[j] * remTime);
-
-                    maxVal = Math.Max(maxVal, DFS(bp, maxSpend, cache, remTime, bots_, amt_));
+                        // check minimum
+                        for (int j = 0; j < 3; j++)
+                            amt_[j] = Math.Min(amt_[j], maxSpend[j] * remTime);
+                        
+                        maxVal = Math.Max(maxVal, DFS(bp, maxSpend, cache, remTime, bots_, amt_));
+                    }
                 }
             }
-            Console.WriteLine("----------");
+            
+            // add this scenario to the cache
             cache.Add(key, maxVal);
-            Console.WriteLine($"--- returning {maxVal} ---");
             return maxVal;
         }
 
