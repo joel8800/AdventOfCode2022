@@ -13,3 +13,17 @@
 | [Day09: Rope Bridge](https://adventofcode.com/2022/day/9) | [Solution](./Day09/Program.cs) | :star::star: |
 | [Day10: Cathode-Ray Tube](https://adventofcode.com/2022/day/10) | [Solution](./Day10/Program.cs) | :star::star: |
 | [Day11: Monkey in the Middle](https://adventofcode.com/2022/day/11) | [Solution](./Day11/Program.cs) | :star::star: |
+| [Day12: Hill Climing Algorithm](https://adventofcode.com/2022/day/12) | [Solution](./Day12/Program.cs) | :star::star: |
+| [Day13: Distress Signal](https://adventofcode.com/2022/day/13) | [Solution](./Day13/Program.cs) | :star::star: |
+| [Day14: Regolith Reservoir](https://adventofcode.com/2022/day/14) | [Solution](./Day14/Program.cs) | :star::star: |
+| [Day15: Beacon Exclusion Zone](https://adventofcode.com/2022/day/15) | [Solution](./Day15/Program.cs) | :star::star: |
+| [Day16: Proboscidea Volcanium](https://adventofcode.com/2022/day/16) | [Solution](./Day16/Program.cs) | :star::star: |
+| [Day17: Pyroclastic Flow](https://adventofcode.com/2022/day/17) | [Solution](./Day17/Program.cs) | :star::star: |
+| [Day18: Boiling Boulders](https://adventofcode.com/2022/day/18) | [Solution](./Day18/Program.cs) | :star::star: |
+| [Day19: Not Enough Minerals](https://adventofcode.com/2022/day/19) | [Solution](./Day19/Program.cs) | :star::star: |
+| [Day20: Grove Positioning System](https://adventofcode.com/2022/day/20) | [Solution](./Day20/Program.cs) | :star::star: |
+| [Day21: Monkey Math](https://adventofcode.com/2022/day/21) | [Solution](./Day21/Program.cs) | :star::star: |
+| [Day22: Monkey Map](https://adventofcode.com/2022/day/22) | [Solution](./Day22/Program.cs) | :star::star: |
+| [Day23: Unstable Diffusion](https://adventofcode.com/2022/day/23) | [Solution](./Day23/Program.cs) | :star::star: |
+| [Day24: Blizzard Basin](https://adventofcode.com/2022/day/24) | [Solution](./Day24/Program.cs) | :star::star: |
+| [Day25: Full of Hot Air](https://adventofcode.com/2022/day/25) | [Solution](./Day25/Program.cs) | :star::star: |
