@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# My project files that should not be committed to the repo
+DayStatus.json
+aocCookie
