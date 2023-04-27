@@ -1,8 +1,14 @@
 # Advent of Code 2022
-- Completed many of the puzzles on the day of release
-- Some puzzles to several extra days to finish
+- This is the first year to do Advent of Code as intended. Daily. 
+- Completed many of the puzzels on the day of release.
+- Some puzzled did take several extra days to finish.
 - Completed all of them by mid-January 2023
-#### Progress:  ![Progress](https://progress-bar.dev/50/?scale=50&title=StarsCollected&width=480&suffix=/50)
+
+#### Progress:
+<img style="display: block; margin-left: auto; margin-right: auto; width: 100%;"
+	src="https://progress-bar.dev/50/?scale=50&title=StarsCollected&width=700&suffix=/50"
+	alt="Progress Bar">
+</img>
 | Day | Status | Source | Solution Notes |
  | - | - | - | - |
  | [Day 01:  Calorie Counting](https://adventofcode.com/2022/day/1) | :star::star: | [Solution](./Day01/Program.cs) | Add descriptive text here |
