@@ -363,5 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # My project files that should not be committed to the repo
-DayStatus.json
 aocCookie

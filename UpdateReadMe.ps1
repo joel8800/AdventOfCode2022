@@ -4,22 +4,23 @@
 # on AdventOfCode challenges
 #
 # This script uses the users session cookie to get the users main page.
-# - It gets the number of stars for each day
+# - JSON file with the current status is saved so we don't have to retrieve the same info daily
+# - Gets the number of stars for each day from adventofcode.com
 # - For each day with stars, it will go to that days puzzle to retrieve the title
 # - A progress bar is generated using the number of stars out of 50
 # - A table that displays the puzzles solved and number stars for each day
-# - JSON file with the current status is saved to not have to retrieve the same information daily
 # 
 # The user needs to get their unique session cookie from their browser and save it to the
-# cookie file ($cookieFile).  It should be one line in the form "session=ba32a3...."
+# cookie file ($cookieFile).  It should be one line in the form "session=ba32a3....", it will be
+# unique for each computer, so it should be ignored by git.
 # 
 # Set the $year variable to the current year.
 #
-# Change the $header here string to include any additional text to the section above the progress
+# Edit the $header string to include any additional Markdown text to the section above the progress
 # bar and table.
 #
-# The Solution Notes column is a place holder. The user should edit the DescText fields in the daily
-# status JSON file.
+# The Solution Notes column is a place holder. The user can edit the DescText fields in the daily
+# status JSON file with anything of interest for that puzzle.
 # =====================================================================================================================
 
 $year = 2022
@@ -57,6 +58,7 @@ $pbFooter = @"
 function Get-DayTitle {
     param ($day)
 
+    Write-Host "Requesting title for Day $day from $url"
     $dayUrl = "$url/day/$day"
     $dayResp = Invoke-WebRequest -Uri $dayUrl
     $content = $dayResp.Content 
@@ -69,6 +71,9 @@ function Get-DayTitle {
 # Generate README.md
 function Write-ReadMeFile {
     $stars = Get-StarCount
+    Write-Host "Total stars collected: $stars"
+    Write-Host "---"
+    Write-Host "Writing README.md file"
     $progressBar = "`tsrc=`"https://progress-bar.dev/$stars/?scale=50&title=StarsCollected&width=700&suffix=/50`""
     $readme = $header + $progressBar + $pbFooter + ($sortedDays | ConvertTo-MarkDownTable) 
     Set-Content -Path '.\README.md' -Value $readme
@@ -106,12 +111,16 @@ function ConvertTo-MarkDownTable {
 # =====================================================================================================================
 # Script start
 # =====================================================================================================================
+Write-Host "Updating README.md for Advent of Code $year"
+
 # Read saved status file
-if (Test-Path -Path 'dayStatus.json') {
+if (Test-Path -Path 'DayStatus.json') {
+    Write-Host "Reading current completion status"
     $localStatus = (Get-Content "DayStatus.json" -raw) | ConvertFrom-Json
 } 
 
 # Read cookie file (ex. session="5423819...")
+Write-Host "Reading session cookie file: $cookieFile"
 $cookie = Get-Content -Path $cookieFile -TotalCount 1
 $parts = $cookie -Split '='
 
@@ -126,7 +135,9 @@ $wrs = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
 $wrs.Cookies.Add($sessCookie)
 
 # Get the main page
+Write-Host "Requesting main page from $url"
 $iwrResp = Invoke-WebRequest -Uri $url -WebSession $wrs
+Write-Host "---"
 
 # Grab all the links with aria-label, there should be up to 25 of them
 $aLabel = 'aria-label'
@@ -151,6 +162,8 @@ $status | ForEach-Object {
     
     # If any stars on this day, build a day object and add to list
     if (($part1 -or $part2) -eq $true) {
+
+        Write-Host "Day $day status: part1 = $part1, part2 = $part2"
 
         # Get day info from local file and use its title
         if (Test-Path variable:localStatus) {
@@ -188,4 +201,5 @@ Write-ReadMeFile
 $json = ConvertTo-Json -InputObject $sortedDays
 $json | Out-File DayStatus.json
 
+Write-Host "Done"
 # script end
